@@ -4,31 +4,24 @@ Running project: [VIEW](https://medid.herokuapp.com/)
 
 Client-side documentation: [VIEW](https://htmlpreview.github.io/?https://raw.githubusercontent.com/RUGSoftEng/2017-Medical-ID/develop/doc/index.html)
 
-### cmd Reminders ###
+**Install and run instructions:**   
+Ensure you have Python2.7 and NodeJS installed on your machine.
 
-**Obtaining files:**   
-git clone -b develop https://github.com/RUGSoftEng/2017-Medical-ID.git  
-git pull origin develop
+In app.js, you can find the mongoose.connect() function. In here, you will find the address of the Mongo database. Replace this with the address of the Mongo database you would like to use.
 
-**Creating a new branch:**   
-git checkout -b newBranch develop
+In forgot.js, there are two sections as such:
 
-**Before a push:**   
-git status  
-git add folderName/* (or: git add -A)  
-(remove file:) git rm fileName  
-git commit -m "I just did some change"   
-git push origin branchName 
+```sh
+auth: {
+    user: 'medicalid17@gmail.com',
+    pass: 'enterpasswordhere'
+}
+```
 
-**Add tag:**  
-git tag -a tagName hashofCommit -m "tagging message"  
-git push --follow-tags  
+Here, you should enter the username and password of the account you would like to send the password reset emails.
 
-**Delete tag:**  
-git tag -d tagName  
-git push --delete origin tagName
+Once the above has been done, run the following commands from the terminal:
 
-**Install and run instructions:**
 ```sh
 $ npm install
 ```
