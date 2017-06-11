@@ -3,6 +3,21 @@ var cleanup = require('./cleanup');
 var request = require('request');
 var app = require('../app').app;
 
+var cookieJar = request.jar();
+
+function login(email, pass, callback) {
+    request({
+        url: "http://localhost:" + app.get('port') + "/login",
+        jar: cookieJar,
+        method: "POST",
+        json: true,
+        body: {
+            'username': email,
+            'password': pass
+        }
+    }, callback);
+}
+
 function testLogin(email, pass, callback) {
     app.testCallback = callback;
     request({
@@ -16,39 +31,55 @@ function testLogin(email, pass, callback) {
     });
 }
 
+function testDelete(pass, callback) {
+    app.testCallback = callback;
+    request({
+        url: "http://localhost:" + app.get('port') + "/delete",
+        jar: cookieJar,
+        method: "POST",
+        json: true,
+        body: {
+            'password': pass
+        }
+    });
+}
+
 module.exports = function (suite) {
     suite.addBatch({
-        'When a user tries to log in with correct credentials': {
+        'When a user tries to delete their account, but uses a wrong password': {
             topic: function () {
-                testLogin("a@b.com", "pass", this.callback);
+                var callback = this.callback;
+                login("a@b.com", "pass", function () {
+                    testDelete("pass2", callback);
+                });
             },
-            'logged in, redirected to /create': function (resMsg, flashMsg) {
+            'account is not deleted, error message': function (resMsg, flashMsg) {
                 cleanup.tryCleanup();
                 cleanup.cleanCallback(app);
                 assert.isString(resMsg);
                 assert.equal(resMsg, '/create');
                 assert.isString(flashMsg);
-                assert.equal(flashMsg, '');
+                assert.equal(flashMsg, 'error_msg: Wrong password, try again.');
             }
         }
     }).addBatch({
-        'When a user tries to log in with non-existent e-mail': {
+        'When a user tries to delete their account and inputs the correct password': {
             topic: function () {
-                testLogin("b@b.com", "pass", this.callback);
+                testDelete("pass", this.callback);
             },
-            'not logged in, error message': function (resMsg, flashMsg) {
+            'logged out, success message': function (resMsg, flashMsg) {
                 cleanup.tryCleanup();
                 cleanup.cleanCallback(app);
                 assert.isString(resMsg);
                 assert.equal(resMsg, '/login');
                 assert.isString(flashMsg);
-                assert.equal(flashMsg, 'error_msg: Login failed: invalid username/password.');
+                assert.equal(flashMsg, 'success_msg: Your account has been deleted.');
             }
         }
     }).addBatch({
-        'When a user tries to log in with wrong password': {
+        'When a user tries to log in into their deleted account': {
             topic: function () {
-                testLogin("a@b.com", "pass2", this.callback);
+                testLogin("a@b.com", "pass", this.callback);
             },
             'not logged in, error message': function (resMsg, flashMsg) {
                 cleanup.tryCleanup();
